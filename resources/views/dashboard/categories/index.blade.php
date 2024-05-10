@@ -15,6 +15,12 @@
   </div>
   @endif
 
+  @if(session()->has('info'))
+  <div class="alert alert-info">
+      {{ session('info') }}
+  </div>
+  @endif
+
     <a href="{{ route('categories.create') }}" class="btn btn-success">Create</a>
 
     <br><br>
@@ -38,10 +44,10 @@
                     <td>{{ $category->parent_id }}</td>
                     <td>{{ $category->created_at }}</td>
                     <td>
-                        <form method="post" action="{{ route('categories.destroy', $category->id) }}">
+                        <form method="post" action="{{ route('categories.destroy', $category->id) }}" onsubmit="return confirmDelete()">
                             @csrf
                             @method('delete')
-                            <button type="submit" class="btn btn-danger">Delete</button>
+                            <button  type="submit" class="btn btn-danger">Delete</button>
                         </form>
                     </td>
                     <td>
@@ -55,4 +61,11 @@
             @endforelse
         </tbody>
     </table>
+
+    <script>
+        function confirmDelete() {
+            var isConfirmed = confirm("Are you sure you want to delete?");
+            return isConfirmed;
+        }
+    </script>
 @endsection

@@ -6,7 +6,9 @@ use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use PhpParser\Node\Stmt\TryCatch;
 
 class CategoriesController extends Controller
 {
@@ -80,7 +82,28 @@ class CategoriesController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        try{
+            $category =Category::findOrFail($id);
+        }
+        catch(Exception $e){
+            return redirect()
+            ->route('categories.index')
+            ->with('info','Category not found');
+        }
+
+        // SELECT * FROM categories WHERE id <> $id 
+        // AND (parent_id IS NULL OR parent_id <> $id)
+        $parents = Category::where('id', '<>', $id)
+            ->where(function($query) use ($id) {
+                $query->whereNull('parent_id')
+                      ->orWhere('parent_id', '<>', $id);
+            })
+            ->get();
+
+
+        $user = Auth::user();
+
+        return view('dashboard.categories.edit',compact('category','user','parents'));
     }
 
     /**
@@ -88,7 +111,14 @@ class CategoriesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $category =Category::findOrFail($id);
+
+        $category->update($request->all());
+
+        return redirect()
+        ->route('categories.index')
+        ->with('success','Category updated');
+
     }
 
     /**
@@ -96,6 +126,16 @@ class CategoriesController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+/*      $category = Category::findOrFail($id);
+        $category->delete(); */
+
+        //Category::where('id', '=', $id)->delete();
+        
+        Category::destroy($id);
+        
+        
+        return redirect()
+        ->route('categories.index')
+        ->with('success','Category deleted');       
     }
 }
